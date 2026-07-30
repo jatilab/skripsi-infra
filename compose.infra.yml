@@ -95,7 +95,7 @@ services:
       resources:
         limits:
           cpus: "0.20"
-          memory: 148MiB
+          memory: 152MiB
 
   prometheus:
     image: prom/prometheus:v3
@@ -116,7 +116,7 @@ services:
       resources:
         limits:
           cpus: "0.20"
-          memory: 420MiB
+          memory: 416MiB
 
   grafana:
     image: grafana/grafana:latest
