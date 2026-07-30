@@ -19,12 +19,12 @@ jobs:
     steps:
       - name: Sync repo to persistent path
         run: |
-          if [ -d /opt/skripsi-infra/.git ]; then
-            cd /opt/skripsi-infra && git pull
+          if [ -d /home/actions-runner/skripsi-infra/.git ]; then
+            cd /home/actions-runner/skripsi-infra && git pull
           else
             git clone --depth 1 \
               https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git \
-              /opt/skripsi-infra
+              /home/actions-runner/skripsi-infra
           fi
 
       - name: Deploy stack
@@ -34,7 +34,7 @@ jobs:
           GF_SECURITY_ADMIN_USER: ${{ secrets.GF_SECURITY_ADMIN_USER }}
           GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
         run: |
-          cd /opt/skripsi-infra
+          cd /home/actions-runner/skripsi-infra
           docker network create --driver overlay --attachable public 2>/dev/null || true
           docker network create --driver overlay --attachable monitoring 2>/dev/null || true
           docker stack deploy --prune --resolve-image always \
