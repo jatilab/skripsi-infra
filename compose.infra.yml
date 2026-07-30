@@ -26,7 +26,7 @@ services:
     command:
       - --providers.swarm=true
       - --providers.swarm.exposedbydefault=false
-      - --providers.swarm.defaultrule=Host(`skripsi-{{ .Name }}.${CF_DOMAIN_NAME}`)
+      - --providers.swarm.defaultrule=Host(`{{ .Name }}.${CF_DOMAIN_NAME}`)
       - --entrypoints.web.address=:80
       - --log.level=info
       - --accesslog=true
