@@ -3,19 +3,18 @@ name: CI/CD
 on:
   pull_request:
   push:
-  workflow_dispatch:
 
 jobs:
-  compose-check:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: docker/setup-compose-action@v2
       - run: docker compose -f compose.infra.yml config
 
-  deploy:
-    needs: compose-check
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+  cd:
+    needs: ci
+    if: github.ref_name == 'main'
     runs-on: self-hosted
     steps:
       - name: Sync repo to persistent path
