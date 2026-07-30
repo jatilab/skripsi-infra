@@ -39,6 +39,7 @@ runcmd:
 
   # GitHub Actions runner
   - useradd --system --create-home --home-dir /home/actions-runner --shell /usr/sbin/nologin actions-runner
+  - usermod -aG docker actions-runner
 
   - curl -fsSLo /tmp/actions-runner.tar.gz https://github.com/actions/runner/releases/download/${gh_runner_version}/actions-runner-${gh_runner_os}-${gh_runner_arch}-${gh_runner_version_number}.tar.gz
   - echo "${gh_runner_sha256}  /tmp/actions-runner.tar.gz" | sha256sum -c -
