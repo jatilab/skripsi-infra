@@ -37,12 +37,12 @@ jobs:
           cd /home/actions-runner/skripsi-infra
           docker network create --driver overlay --attachable public 2>/dev/null || true
           docker network create --driver overlay --attachable monitoring 2>/dev/null || true
-          docker stack deploy --prune --resolve-image always \
+          docker stack deploy --detach=false --prune --resolve-image always \
             -c compose.infra.yml skripsi-infra
 
       - name: Verify stack
         run: |
-          sleep 5
+          sleep 30
           docker stack ps skripsi-infra --no-trunc
           docker stack services skripsi-infra --format '{{.Name}} {{.Replicas}}' | \
             awk '{if($2 !~ /1\/1/ && $2 !~ /all/) {print $1,$2; e=1}} END {exit e}'
