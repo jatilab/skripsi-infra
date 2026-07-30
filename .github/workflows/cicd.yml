@@ -42,7 +42,7 @@ jobs:
 
       - name: Verify stack
         run: |
-          sleep 30
+          sleep 5
           docker stack ps skripsi-infra --no-trunc
           docker stack services skripsi-infra --format '{{.Name}} {{.Replicas}}' | \
             awk '{if($2 !~ /1\/1/ && $2 !~ /all/) {print $1,$2; e=1}} END {exit e}'
