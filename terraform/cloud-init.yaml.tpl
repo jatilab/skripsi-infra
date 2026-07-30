@@ -35,6 +35,7 @@ runcmd:
   - usermod -aG docker ubuntu
   - systemctl enable docker
   - systemctl start docker
+  - docker swarm init
 
   # GitHub Actions runner
   - useradd --system --create-home --home-dir /home/actions-runner --shell /usr/sbin/nologin actions-runner
