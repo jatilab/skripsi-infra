@@ -1,0 +1,148 @@
+networks:
+  public:
+    external: true
+  monitoring:
+    external: true
+
+volumes:
+  traefik_data:
+  prometheus_data:
+  grafana_data:
+
+services:
+  traefik:
+    image: traefik:v3
+    networks:
+      - public
+      - monitoring
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+    volumes:
+      - traefik_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - --providers.swarm=true
+      - --providers.swarm.exposedbydefault=false
+      - --providers.swarm.defaultrule=Host(`skripsi-{{ .Name }}.${CF_DOMAIN_NAME}`)
+      - --entrypoints.web.address=:80
+      - --log.level=info
+      - --accesslog=true
+      - --metrics.prometheus=true
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256MiB
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    environment:
+      TUNNEL_TOKEN: ${CF_TUNNEL_TOKEN}
+    networks:
+      - public
+    command: tunnel --no-autoupdate run
+    deploy:
+      mode: global
+      update_config:
+        order: start-first
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 128MiB
+
+  node:
+    image: prom/node-exporter:v1-distroless
+    networks:
+      - monitoring
+    volumes:
+      - /:/host:ro,rslave
+    command:
+      - --path.rootfs=/host
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    deploy:
+      mode: global
+      update_config:
+        order: start-first
+      resources:
+        limits:
+          cpus: "0.10"
+          memory: 72MiB
+
+  cadvisor:
+    image: ghcr.io/google/cadvisor:v0.60.5
+    networks:
+      - monitoring
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    command:
+      - --docker_only
+      - --housekeeping_interval=5s
+    deploy:
+      mode: global
+      update_config:
+        order: start-first
+      resources:
+        limits:
+          cpus: "0.20"
+          memory: 148MiB
+
+  prometheus:
+    image: prom/prometheus:v3
+    user: 0:0
+    networks:
+      - monitoring
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus:/etc/prometheus:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --config.auto-reload
+      - --storage.tsdb.retention.time=7d
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "0.20"
+          memory: 420MiB
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
+      GF_AUTH_ANONYMOUS_ENABLED: 1
+    networks:
+      - public
+      - monitoring
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana:/etc/grafana/provisioning:ro
+    deploy:
+      update_config:
+        order: start-first
+      labels:
+        - traefik.enable=true
+        - traefik.http.services.grafana.loadbalancer.server.port=3000
+        - traefik.http.middlewares.grafana-rl.ratelimit.average=10
+        - traefik.http.middlewares.grafana-rl.ratelimit.burst=15
+        - traefik.http.routers.grafana.middlewares=grafana-rl
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 1GiB
