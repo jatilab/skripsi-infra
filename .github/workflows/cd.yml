@@ -1,0 +1,41 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Sync repo to persistent path
+        run: |
+          if [ -d /opt/skripsi-infra/.git ]; then
+            cd /opt/skripsi-infra && git pull
+          else
+            git clone --depth 1 \
+              https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git \
+              /opt/skripsi-infra
+          fi
+
+      - name: Deploy stack
+        env:
+          CF_TUNNEL_TOKEN: ${{ secrets.CF_TUNNEL_TOKEN }}
+          CF_DOMAIN_NAME: ${{ secrets.CF_DOMAIN_NAME }}
+          GF_SECURITY_ADMIN_USER: ${{ secrets.GF_SECURITY_ADMIN_USER }}
+          GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
+        run: |
+          cd /opt/skripsi-infra
+          docker network create --driver overlay --attachable public 2>/dev/null || true
+          docker network create --driver overlay --attachable monitoring 2>/dev/null || true
+          docker stack deploy --prune --resolve-image always \
+            -c compose.infra.yml skripsi-infra
+
+      - name: Verify stack
+        run: |
+          sleep 5
+          docker stack ps skripsi-infra --no-trunc
+          docker stack services skripsi-infra --format '{{.Name}} {{.Replicas}}' | \
+            awk '{if($2 !~ /1\/1/ && $2 !~ /all/) {print $1,$2; e=1}} END {exit e}'
