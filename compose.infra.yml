@@ -95,7 +95,7 @@ services:
       resources:
         limits:
           cpus: "0.20"
-          memory: 152MiB
+          memory: 188MiB
 
   prometheus:
     image: prom/prometheus:v3
@@ -145,4 +145,4 @@ services:
       resources:
         limits:
           cpus: "0.50"
-          memory: 1GiB
+          memory: 1500MiB
