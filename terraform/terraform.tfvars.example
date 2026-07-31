@@ -21,7 +21,7 @@ oci_ssh_public_key          = "ssh-rsa AAAA... user@host"
 # GitHub Actions runner
 gh_org_name       = "jatilab"
 gh_runner_name    = "skripsi-server"
-gh_runner_token   = "your-runner-registration-token"
+gh_pat            = "github_pat_..."
 gh_runner_version = "v2.335.1"
 gh_runner_os      = "linux"
 gh_runner_arch    = "arm64"

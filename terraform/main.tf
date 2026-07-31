@@ -122,7 +122,7 @@ resource "oci_core_instance" "skripsi" {
     user_data = base64encode(templatefile("${path.module}/cloud-init.yaml.tpl", {
       gh_org_name              = var.gh_org_name
       gh_runner_name           = var.gh_runner_name
-      gh_runner_token          = var.gh_runner_token
+      gh_pat                   = var.gh_pat
       gh_runner_version        = var.gh_runner_version
       gh_runner_version_number = local.gh_runner_version_number
       gh_runner_os             = var.gh_runner_os

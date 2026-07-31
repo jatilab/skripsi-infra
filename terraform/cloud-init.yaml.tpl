@@ -49,7 +49,14 @@ runcmd:
   - rm -f /tmp/actions-runner.tar.gz
 
   - chown -R actions-runner:actions-runner /opt/actions-runner
-  - sudo -u actions-runner bash -c 'cd /opt/actions-runner && ./config.sh --unattended --url https://github.com/${gh_org_name} --token ${gh_runner_token} --labels self-hosted,linux,arm64 --name "${gh_runner_name}" --work _work --replace --disableupdate'
+  - |
+    RUNNER_TOKEN=$(curl -fsSL -X POST \
+      -H "Authorization: Bearer ${gh_pat}" \
+      -H "Accept: application/vnd.github+json" \
+      "https://api.github.com/orgs/${gh_org_name}/actions/runners/registration-token" \
+      | python3 -c "import json,sys; print(json.load(sys.stdin)['token'])")
+    [ -n "$RUNNER_TOKEN" ] || { echo "ERROR: failed to fetch runner token"; exit 1; }
+    sudo -u actions-runner bash -c "cd /opt/actions-runner && ./config.sh --unattended --url https://github.com/${gh_org_name} --token \"$RUNNER_TOKEN\" --labels self-hosted,linux,arm64 --name \"${gh_runner_name}\" --work _work --replace --disableupdate"
   - cd /opt/actions-runner && ./svc.sh install actions-runner && ./svc.sh start
 
   - echo 'skripsi deployment server ready (Docker + GH Actions runner).' >> /etc/motd

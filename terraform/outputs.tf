@@ -7,8 +7,3 @@ output "instance_private_ip" {
   description = "Private IP of the compute instance"
   value       = oci_core_instance.skripsi.private_ip
 }
-
-output "ssh_command" {
-  description = "SSH command to connect to instance"
-  value       = "ssh ubuntu@${oci_core_instance.skripsi.public_ip}"
-}

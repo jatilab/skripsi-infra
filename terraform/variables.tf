@@ -79,8 +79,8 @@ variable "gh_runner_name" {
   default     = "skripsi-server"
 }
 
-variable "gh_runner_token" {
-  description = "GitHub Actions runner registration token"
+variable "gh_pat" {
+  description = "GitHub PAT with admin:org scope (fetch runner registration token at runtime)"
   type        = string
   sensitive   = true
 }
