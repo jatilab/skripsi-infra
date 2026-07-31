@@ -16,10 +16,10 @@ variable "oci_fingerprint" {
   sensitive   = true
 }
 
-variable "oci_private_key_path" {
-  description = "Path to the private key file"
+variable "oci_private_key" {
+  description = "Contents of the OCI API private key (full PEM content)"
   type        = string
-  default     = "~/.oci/oci_api_key.pem"
+  sensitive   = true
 }
 
 variable "oci_region" {
